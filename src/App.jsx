@@ -1,5 +1,7 @@
 import Hero from "./components/Hero";
 import Demo from "./components/Demo";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import "./App.css";
 
@@ -13,6 +15,7 @@ const App = () => {
       <div className='app'>
         <Hero />
         <Demo />
+        <ToastContainer position="top-right" autoClose={3000} /> {/* Add this */}
       </div>
     </main>
   );

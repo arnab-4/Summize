@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-
-import { copy, linkIcon, loader, tick } from "../assets";
+import { copy, linkIcon, loader, tick, deleteIcon } from "../assets";
 import { useLazyGetSummaryQuery } from "../services/article";
+import { ToastContainer, toast } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 
 const Demo = () => {
   const [article, setArticle] = useState({
@@ -46,93 +48,114 @@ const Demo = () => {
     }
   };
 
-  // copy the url and toggle the icon for user feedback
+  // copy the URL and toggle the icon for user feedback
   const handleCopy = (copyUrl) => {
     setCopied(copyUrl);
     navigator.clipboard.writeText(copyUrl);
     setTimeout(() => setCopied(false), 3000);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.keyCode === 13) {
-      handleSubmit(e);
+  // Function to delete an article from the history
+  const handleDelete = (urlToDelete) => {
+    const updatedArticles = allArticles.filter((item) => item.url !== urlToDelete);
+    setAllArticles(updatedArticles);
+    localStorage.setItem("articles", JSON.stringify(updatedArticles));
+  
+    // Show a success toast message
+    toast.success("Delete Successfully", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+    });
+  };
+
+  // Function to display the summary of a history article when clicked
+  const handleHistoryItemClick = (url) => {
+    const clickedArticle = allArticles.find((item) => item.url === url);
+    if (clickedArticle) {
+      setArticle(clickedArticle);
     }
   };
 
   return (
-    <section className='mt-16 w-full max-w-xl'>
+    <section className="mt-16 w-full max-w-xl">
       {/* Search */}
-      <div className='flex flex-col w-full gap-2'>
+      <div className="flex flex-col w-full gap-2">
         <form
-          className='relative flex justify-center items-center'
+          className="relative flex justify-center items-center"
           onSubmit={handleSubmit}
         >
           <img
             src={linkIcon}
-            alt='link-icon'
-            className='absolute left-0 my-2 ml-3 w-5'
+            alt="link-icon"
+            className="absolute left-0 my-2 ml-3 w-5"
           />
-
           <input
-            type='url'
-            placeholder='Paste the article link'
+            type="url"
+            placeholder="Paste the article link"
             value={article.url}
             onChange={(e) => setArticle({ ...article, url: e.target.value })}
-            onKeyDown={handleKeyDown}
             required
-            className='url_input peer' // When you need to style an element based on the state of a sibling element, mark the sibling with the peer class, and use peer-* modifiers to style the target element
+            className="url_input peer"
           />
           <button
-            type='submit'
-            className='submit_btn peer-focus:border-gray-700 peer-focus:text-gray-700 '
+            type="submit"
+            className="submit_btn peer-focus:border-gray-700 peer-focus:text-gray-700 "
           >
             <p>↵</p>
           </button>
         </form>
 
         {/* Browse History */}
-        <div className='flex flex-col gap-1 max-h-60 overflow-y-auto'>
+        <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
           {allArticles.reverse().map((item, index) => (
             <div
               key={`link-${index}`}
-              onClick={() => setArticle(item)}
-              className='link_card'
+              className="link_card flex items-center cursor-pointer"
+              onClick={() => handleHistoryItemClick(item.url)}
             >
-              <div className='copy_btn' onClick={() => handleCopy(item.url)}>
+              <div className="copy_btn" onClick={() => handleCopy(item.url)}>
                 <img
                   src={copied === item.url ? tick : copy}
                   alt={copied === item.url ? "tick_icon" : "copy_icon"}
-                  className='w-[40%] h-[40%] object-contain'
+                  className="w-[40%] h-[40%] object-contain"
                 />
               </div>
-              <p className='flex-1 font-satoshi text-blue-700 font-medium text-sm truncate'>
+              <div className="flex-1 font-satoshi text-blue-700 font-medium text-sm truncate">
                 {item.url}
-              </p>
+              </div>
+              {/* Delete button with icon on the right */}
+              <button
+                onClick={() => handleDelete(item.url)}
+                className="delete_btn ml-2"
+              >
+                <img src={deleteIcon} alt="delete_icon" className="w-4 h-4" />
+              </button>
             </div>
           ))}
         </div>
       </div>
 
       {/* Display Result */}
-      <div className='my-10 max-w-full flex justify-center items-center'>
+      <div className="my-10 max-w-full flex justify-center items-center">
         {isFetching ? (
-          <img src={loader} alt='loader' className='w-20 h-20 object-contain' />
+          <img src={loader} alt="loader" className="w-20 h-20 object-contain" />
         ) : error ? (
-          <p className='font-inter font-bold text-black text-center'>
+          <p className="font-inter font-bold text-black text-center">
             Well, that wasn't supposed to happen...
             <br />
-            <span className='font-satoshi font-normal text-gray-700'>
+            <span className="font-satoshi font-normal text-gray-700">
               {error?.data?.error}
             </span>
           </p>
         ) : (
           article.summary && (
-            <div className='flex flex-col gap-3'>
-              <h2 className='font-satoshi font-bold text-gray-600 text-xl'>
-                Article <span className='blue_gradient'>Summary</span>
+            <div className="flex flex-col gap-3">
+              <h2 className="font-satoshi font-bold text-gray-600 text-xl">
+                Article <span className="blue_gradient">Summary</span>
               </h2>
-              <div className='summary_box'>
-                <p className='font-inter font-medium text-sm text-gray-700'>
+              <div className="summary_box">
+                <p className="font-inter font-medium text-sm text-gray-700">
                   {article.summary}
                 </p>
               </div>
@@ -140,6 +163,8 @@ const Demo = () => {
           )
         )}
       </div>
+      {/* Toastify Container */}
+      <ToastContainer />
     </section>
   );
 };
