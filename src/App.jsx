@@ -15,7 +15,7 @@ const App = () => {
       <div className='app'>
         <Hero />
         <Demo />
-        <ToastContainer position="top-right" autoClose={3000} /> {/* Add this */}
+        {/* Add this */}
       </div>
     </main>
   );
